@@ -6,7 +6,7 @@
 Liaisons is a project aiming to proposes a GUI for the argumentational analytics of social media contents, taking advantages of the Large Language Models for the argument relations prediction.
 
 ## About the Development Team
-This project is solely conducted by me, (Guilhem Santé)[https://github.com/guilhem-sante]. I am a postgraduate student pursuing the MSc in Artificial Intelligence at Heriot-Watt University in Edinburgh.
+This project is solely conducted by me, [Guilhem Santé](https://github.com/guilhem-sante). I am a postgraduate student pursuing the MSc in Artificial Intelligence at Heriot-Watt University in Edinburgh.
 
 ## Special Thanks
 I would like to credits [Andrew Ireland](http://www.macs.hw.ac.uk/~air/), my supervisor for this project.
