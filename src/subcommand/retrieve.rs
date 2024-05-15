@@ -1,8 +1,24 @@
 use std::path::PathBuf;
+use std::fs;
+use serde::{Deserialize, Serialize};
+use serde_json;
+
+#[derive(Deserialize, Serialize, Debug)]
+struct InputData {
+    content: String,
+}
 
 #[allow(unused_variables)]
-pub fn retrieve_arguments(file: PathBuf) -> Result<(), ()> {
-    unimplemented!();
+pub fn retrieve_arguments(file_path: PathBuf) -> Result<(), ()> {
+    let input: Vec<InputData> = {
+        let data = fs::read_to_string(file_path).expect("error reading input file");
+
+        serde_json::from_str(&data).unwrap()
+    };
+
+    println!("{:?}", serde_json::to_string_pretty(&input).expect("error parsing input to JSON"));
+
+    Ok(())
 }
 
 #[cfg(test)]
