@@ -9,6 +9,6 @@ Liaisons is a project aiming to proposes a GUI for the argumentational analytics
 This project is solely conducted by me, [Guilhem Santé](https://github.com/guilhem-sante). I am a postgraduate student pursuing the MSc in Artificial Intelligence at Heriot-Watt University in Edinburgh.
 
 ## Special Thanks
-I would like to credits [Andrew Ireland](http://www.macs.hw.ac.uk/~air/), my supervisor for this project.
-
+I would like to credits [Andrew Ireland](http://www.macs.hw.ac.uk/~air/), my supervisor for this project.  
+  
 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Heriot-Watt_University_logo.svg/1200px-Heriot-Watt_University_logo.svg.png" width="300">
