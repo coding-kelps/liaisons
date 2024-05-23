@@ -1,22 +1,68 @@
 use std::path::PathBuf;
-use std::fs;
+use tokio::fs;
 use serde::{Deserialize, Serialize};
 use serde_json;
+use reqwest::Client;
+use log;
 
 #[derive(Deserialize, Serialize, Debug)]
-struct InputData {
+struct InputContentData {
     content: String,
 }
 
-#[allow(unused_variables)]
-pub fn retrieve_arguments(file_path: PathBuf) -> Result<(), ()> {
-    let input: Vec<InputData> = {
-        let data = fs::read_to_string(file_path).expect("error reading input file");
+#[derive(Deserialize)]
+struct ErrorResponse {
+    error: String,
+}
+
+#[derive(Deserialize)]
+struct SuccessResponse {
+    argument: Arguments,
+}
+
+#[derive(Serialize, Deserialize)]
+#[allow(dead_code)]
+struct Arguments {
+    summary: String,
+}
+
+pub async fn retrieve_arguments(file_path: PathBuf, model_address: &str) -> Result<(), ()> {
+    let content_inputs: Vec<InputContentData> = {
+        let data = fs::read_to_string(file_path).await.unwrap();
 
         serde_json::from_str(&data).unwrap()
     };
+    let mut arguments: Vec<Arguments> = Vec::with_capacity(content_inputs.len());
 
-    println!("{:?}", serde_json::to_string_pretty(&input).expect("error parsing input to JSON"));
+    let client = Client::new();
+
+    // I've decided to send to send each elements as a separate requests to simplify
+    // the development, and the design of the request handling.
+    for input in content_inputs {
+        let res = client.post(model_address)
+            .json(&input)
+            .send()
+            .await;
+
+        match res {
+            Ok(response) => {
+                if !response.status().is_success() {
+                    let body = response.json::<ErrorResponse>().await.unwrap();
+
+                    log::error!("bad response: {}", body.error)
+                } else {
+                    let body = response.json::<SuccessResponse>().await.unwrap();
+
+                    arguments.push(body.argument);
+                }
+            }
+            Err(e) => log::error!("requests failed {:?}", e)
+        }
+    }
+
+    let j = serde_json::to_string(&arguments).unwrap();
+
+    fs::write("data.json", j).await.unwrap();
 
     Ok(())
 }
@@ -24,14 +70,5 @@ pub fn retrieve_arguments(file_path: PathBuf) -> Result<(), ()> {
 #[cfg(test)]
 mod tests {
     mod retrieve_arguments {
-        use super::super::*;
-
-        // The test by itself isn't really useful but it enables me to test the
-        // CI automation in the meanwhile of some real tests.
-        #[test]
-        #[should_panic]
-        fn not_implemented() {
-            retrieve_arguments(PathBuf::from("/tmp/")).unwrap();
-        }
     }
 }
