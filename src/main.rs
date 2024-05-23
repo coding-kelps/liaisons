@@ -1,5 +1,7 @@
 use std::path::PathBuf;
 use clap::{Parser, Subcommand};
+use tokio;
+use env_logger;
 
 mod subcommand;
 
@@ -20,6 +22,10 @@ enum Commands {
         #[arg(short, long)]
         #[arg(help = "The file path to the JSON source file of social media posts")]
         file: PathBuf,
+        #[arg(short, long)]
+        #[arg(help = "The actual address of the Large Language Model to use to make inferences with")]
+        #[clap(default_value = "http://localhost")]
+        model_address: String,
     },
 
     #[clap(alias("predict"), alias("p"))]
@@ -31,12 +37,18 @@ enum Commands {
     }
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
+    env_logger::builder()
+        .filter_level(log::LevelFilter::Info)
+        .init();
+
     let cli = Cli::parse();
 
     match &cli.command {
-        Some(Commands::RetrieveArguments { file }) => subcommand::retrieve::retrieve_arguments(file.to_path_buf()),
-        Some(Commands::PredictRelations { file }) => subcommand::predict::predict_relations(file.to_path_buf()),
+        Some(Commands::RetrieveArguments { file, model_address }) =>
+            subcommand::retrieve::retrieve_arguments(file.to_path_buf(), model_address).await,
+        Some(Commands::PredictRelations { file }) => subcommand::predict::predict_relations(file.to_path_buf()).await,
         None => Ok(()),
     }.unwrap()
 }
