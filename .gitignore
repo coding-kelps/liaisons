@@ -20,5 +20,4 @@ Cargo.lock
 
 
 # Ignore development folder
-/dummy
-/output
+/.dev
