@@ -21,3 +21,9 @@ Cargo.lock
 
 # Ignore development folder
 /.dev
+
+# Ignore development outputs
+*data.json
+
+# Ignore VSCode development directory
+.vscode

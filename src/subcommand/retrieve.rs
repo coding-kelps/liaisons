@@ -17,12 +17,12 @@ struct ErrorResponse {
 
 #[derive(Deserialize)]
 struct SuccessResponse {
-    argument: Arguments,
+    argument: Argument,
 }
 
 #[derive(Serialize, Deserialize)]
 #[allow(dead_code)]
-struct Arguments {
+struct Argument {
     summary: String,
 }
 
@@ -32,7 +32,7 @@ pub async fn retrieve_arguments(file_path: PathBuf, model_address: &str) -> Resu
 
         serde_json::from_str(&data).unwrap()
     };
-    let mut arguments: Vec<Arguments> = Vec::with_capacity(content_inputs.len());
+    let mut arguments: Vec<Argument> = Vec::with_capacity(content_inputs.len());
 
     let client = Client::new();
 
@@ -51,7 +51,7 @@ pub async fn retrieve_arguments(file_path: PathBuf, model_address: &str) -> Resu
 
                     log::error!("bad response: {}", body.error)
                 } else {
-                    let body = response.json::<SuccessResponse>().await.unwrap();
+                    let body: SuccessResponse = response.json::<SuccessResponse>().await.unwrap();
 
                     arguments.push(body.argument);
                 }
