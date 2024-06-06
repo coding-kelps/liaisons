@@ -2,7 +2,6 @@ use std::path::PathBuf;
 use clap::{Parser, Subcommand};
 use tokio;
 use env_logger;
-
 mod subcommand;
 
 // The structure that defines the parsed arguments
