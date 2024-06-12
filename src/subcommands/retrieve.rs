@@ -5,7 +5,7 @@ use serde_json;
 
 use crate::clients::ollama;
 use crate::models::Argument;
-use crate::settings::Model;
+use crate::configuration::Model;
 
 #[derive(Deserialize, Serialize, Debug)]
 struct InputContentData {
@@ -18,7 +18,7 @@ pub async fn retrieve_arguments(file_path: PathBuf, model: &Model) -> Result<(),
 
         serde_json::from_str(&data).unwrap()
     };
-    let ollama_client = ollama::Client::new(&model.endpoint, &model.name);
+    let ollama_client = ollama::Client::new(model);
 
     let mut arguments: Vec<Argument> = Vec::with_capacity(content_inputs.len());
 
