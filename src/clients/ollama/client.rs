@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::clients::ollama::Error;
 use crate::models::Argument;
+use crate::configuration::Model;
 
 #[derive(Serialize)]
 struct ModelOptions {
@@ -41,22 +42,20 @@ struct GenerateSuccessResponseBody {
 
 pub struct Client {
     client: reqwest::Client,
-    endpoint: String,
-    model_name: String,
+    model: Model,
 }
 
 impl Client {
-    pub fn new(endpoint: &str, model_name: &str) -> Self {
+    pub fn new(model: &Model) -> Self {
         Client {
             client: reqwest::Client::new(),
-            endpoint: endpoint.to_string(),
-            model_name: model_name.to_string(),
+            model: model.clone(),
         } 
     }
 
     pub async fn retrieve(&self, _content: String) -> Result<Argument, Error> {
         let req_body = GenerateRequestBody {
-            model: self.model_name.clone(),
+            model: self.model.name.clone(),
             prompt: String::from("Hi gemma!"),
             system: String::from("Respond Kindly"),
             template: String::from("Hi charming person!"),
@@ -66,7 +65,7 @@ impl Client {
             stream: false,
         };
 
-        let res: Result<reqwest::Response, reqwest::Error> = self.client.post(&self.endpoint)
+        let res: Result<reqwest::Response, reqwest::Error> = self.client.post(&self.model.endpoint)
             .json(&req_body)
             .send()
             .await;
