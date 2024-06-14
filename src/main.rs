@@ -10,7 +10,23 @@ use tokio;
 async fn main() {
     let cli = Cli::parse();
 
-    match cli.log.level {
+    setup_logger(&cli);
+
+    match &cli.command {
+        Some(Commands::RetrieveArguments { file, model }) => {
+            let _ = subcommands::retrieve::retrieve_arguments(file.to_path_buf(), model.model_file.clone().unwrap())
+                .await;
+        },
+        Some(Commands::PredictRelations { file, model: _ }) => {
+            let _ = subcommands::predict::predict_relations(file.to_path_buf())
+                .await;
+        },
+        None => (),
+    }
+}
+
+fn setup_logger(cli: &Cli) {
+    match &cli.log.level {
         Some(level_str) => {
             match level_str.parse::<log::LevelFilter>() {
                 Ok(level) => {
@@ -27,13 +43,6 @@ async fn main() {
         },
         _ => setup_default_logger(),
     };
-
-    match &cli.command {
-        Some(Commands::RetrieveArguments { file, model }) =>
-            subcommands::retrieve::retrieve_arguments(file.to_path_buf(), model).await,
-        Some(Commands::PredictRelations { file, model: _ }) => subcommands::predict::predict_relations(file.to_path_buf()).await,
-        None => Ok(()),
-    }.unwrap()
 }
 
 fn setup_default_logger() {
