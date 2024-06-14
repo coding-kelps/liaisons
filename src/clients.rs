@@ -21,8 +21,8 @@ pub enum Error {
     #[error("ollama client error: {0}")]
     Ollama(#[from] ollama::Error),
 
-    #[error("no client found in configuration")]
-    NoClient,
+    #[error("configuration error: {0}")]
+    Configuration(String),
 }
 
 impl Client {
@@ -31,11 +31,31 @@ impl Client {
 
         let mapping = serde_yaml::from_str::<Mapping>(&data)?;
 
-        let value = mapping.get("ollama").unwrap();
+        let mut loaded_client: Option<Self> = None;
+        let client_keys = ["ollama"];
 
-        match ollama::Client::from_value(value) {
-            Ok(client) => Ok(Client::Ollama(client)),
-            Err(_) => Err(Error::NoClient),
+
+        for key in client_keys {
+            if mapping.get(key).is_some() {
+                let value = mapping.get(key).unwrap();
+
+                match ollama::Client::from_value(value) {
+                    Ok(client) => {
+                        if loaded_client.is_none() {
+                            loaded_client = Some(Client::Ollama(client));
+                        } else {
+                            return Err(Error::Configuration(
+                                String::from("more than one client definition in configuration file")))
+                        }
+                    },
+                    Err(e) => return Err(Error::Configuration(format!("{}", e))),
+                };
+            }
+        }
+
+        match loaded_client {
+            Some(client) => Ok(client),
+            None => Err(Error::Configuration(String::from(""))),
         }
     }
 }
