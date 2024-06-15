@@ -1,2 +1,2 @@
 pub mod predict;
-pub mod retrieve;
+pub mod summarize;
