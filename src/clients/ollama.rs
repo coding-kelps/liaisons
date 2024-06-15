@@ -125,7 +125,7 @@ impl clients::ClientTrait for Client {
     async fn summarize(&self, raw: String) -> Result<Argument, clients::Error> {
         let req_body = GenerateRequestBody {
             model: self.configuration.model_name.clone(),
-            prompt: format!("{} {}", self.configuration.prompt.clone(), raw),
+            prompt: format!("{}\n{}", self.configuration.prompt.clone(), raw),
             system: self.configuration.system.clone(),
             options: self.configuration.options.clone(),
             stream: false,
