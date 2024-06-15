@@ -10,11 +10,11 @@ use tokio;
 async fn main() {
     let cli = Cli::parse();
 
-    setup_logger(&cli);
+    setup_logger(&cli.log);
 
     match &cli.command {
-        Some(Commands::RetrieveArguments { file, model }) => {
-            let _ = subcommands::retrieve::retrieve_arguments(file.to_path_buf(), model.model_file.clone().unwrap())
+        Some(Commands::SummarizeArguments { file, model }) => {
+            let _ = subcommands::summarize::summarize_arguments(file.to_path_buf(), model.model_file.clone().unwrap())
                 .await;
         },
         Some(Commands::PredictRelations { file, model: _ }) => {
@@ -25,8 +25,9 @@ async fn main() {
     }
 }
 
-fn setup_logger(cli: &Cli) {
-    match &cli.log.level {
+// Setup the env_logger logger from a Log configuration
+fn setup_logger(cfg: &Log) {
+    match &cfg.level {
         Some(level_str) => {
             match level_str.parse::<log::LevelFilter>() {
                 Ok(level) => {
@@ -45,6 +46,7 @@ fn setup_logger(cli: &Cli) {
     };
 }
 
+// Setup the env_logger with a default `WARN` filter level.
 fn setup_default_logger() {
     env_logger::builder()
         .filter_level(log::LevelFilter::Warn)

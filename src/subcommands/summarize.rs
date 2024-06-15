@@ -7,12 +7,16 @@ use crate::clients;
 use crate::clients::ClientTrait;
 use crate::models::Argument;
 
+/// Describe the content of the raw arguments passed through the input JSON
+/// file.
 #[derive(Deserialize, Serialize, Debug)]
 struct InputContentData {
-    content: String,
+    /// The user-generated web content to extract arguments from as a raw
+    /// string.
+    raw: String,
 }
 
-pub async fn retrieve_arguments(file_path: PathBuf, path: PathBuf) -> Result<(), ()> {
+pub async fn summarize_arguments(file_path: PathBuf, path: PathBuf) -> Result<(), ()> {
     let content_inputs: Vec<InputContentData> = {
         let data = fs::read_to_string(file_path).await.unwrap();
 
@@ -25,7 +29,7 @@ pub async fn retrieve_arguments(file_path: PathBuf, path: PathBuf) -> Result<(),
     // I've decided to send to send each elements as a separate requests to simplify
     // the development, and the design of the request handling.
     for input in content_inputs {
-        match client.retrieve(input.content).await {
+        match client.summarize(input.raw).await {
             Ok(argument) => {
                 log::info!("sucessfully retrieved argument");
 

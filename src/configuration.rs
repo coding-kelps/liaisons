@@ -2,7 +2,7 @@ pub use clap::{Parser, Subcommand, Args};
 use std::path::PathBuf;
 use serde::Deserialize;
 
-// The structure that defines the parsed arguments
+/// Describe the Command Line Interface arguments. 
 #[derive(Parser)]
 #[command(version = "0.1.0", about, long_about = None)]
 #[command(about = "A CLI client to mine arguments and their relations from social media posts", long_about = None)]
@@ -22,9 +22,9 @@ pub struct Log {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    #[clap(alias("retrieve"))]
-    #[clap(about = "Retrieve arguments from a given JSON source file gathering social media posts")]
-    RetrieveArguments {
+    #[clap(alias("summarize"))]
+    #[clap(about = "Summarize arguments from a given JSON source file gathering social media posts")]
+    SummarizeArguments {
         #[arg(short, long)]
         #[arg(help = "The file path to the JSON source file of social media posts")]
         file: PathBuf,
