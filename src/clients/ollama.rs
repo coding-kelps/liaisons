@@ -1,32 +1,27 @@
 use reqwest;
 use serde::{Deserialize, Serialize};
-use serde_yaml;
 use thiserror::Error as ThisError;
 
 use crate::models::Argument;
 use crate::clients;
+use crate::configuration::settings;
 
 /// Describe a client to a Large Language Model running via an Ollama server.
 pub struct Client {
     /// The underlying http client.
     client: reqwest::Client,
-    /// The configuration of the client.
-    configuration: Configuration,
+    /// The name of the Large Language Model request inference from. 
+    model: String,
+    /// The address of Ollama server.
+    uri: String,
+    /// The options of the inference.
+    options: Option<ModelOptions>,
 }
 
 /// Describe the configuration of the Ollama client.
 #[derive(Deserialize)]
 struct Configuration {
-    /// The name of the Large Language Model request inference from. 
-    model_name: String,
-    /// The address of Ollama server.
-    address: String,
-    /// The prompt 
-    prompt: String,
-    /// The system prompt.
-    system: Option<String>,
-    /// The options of the inference.
-    options: Option<ModelOptions>,
+
 }
 
 #[derive(Deserialize, Serialize, Clone)]
@@ -37,9 +32,6 @@ struct ModelOptions {
 
 #[derive(Debug, ThisError)]
 pub enum Error {
-    #[error("deserialization error: {0}")]
-    DeserializationError(#[from] serde_yaml::Error),
-
     #[error("api error: {0}")]
     ApiError(String),
 
@@ -100,39 +92,28 @@ struct GenerateSuccessResponseBody {
 }
 
 impl Client {
-    /// Create a new Ollama client from a `serde_yaml::Value`.
-    /// 
-    /// # Arguments
-    /// 
-    /// * `value` - A reference to an `serde_yaml::Value` describing the
-    ///     configuration of the Ollama client.
-    /// 
-    /// # Errors
-    /// 
-    /// This function will return an error if:
-    /// 
-    /// * The passed value is invalid.
-    /// 
-    pub fn from_value(value: & serde_yaml::Value) -> Result<Self, Error> {
-        Ok(Client {
+    pub fn new(cfg: &settings::OllamaLLMClient) -> Self {
+        Client {
             client: reqwest::Client::new(),
-            configuration: serde_yaml::from_value::<Configuration>(value.to_owned())?,
-        })
+            model: cfg.model.clone(),
+            uri: cfg.uri.clone(),
+            options: None,
+        }
     }
 }
 
 impl clients::ClientTrait for Client {
-    async fn summarize(&self, raw: String) -> Result<Argument, clients::Error> {
+    async fn summarize(&self, prompt: &settings::Prompt, raw: String) -> Result<Argument, clients::Error> {
         let req_body = GenerateRequestBody {
-            model: self.configuration.model_name.clone(),
-            prompt: format!("{}\n{}", self.configuration.prompt.clone(), raw),
-            system: self.configuration.system.clone(),
-            options: self.configuration.options.clone(),
+            model: self.model.clone(),
+            prompt: format!("{}\n{}", prompt.prompt.clone(), raw),
+            system: prompt.system.clone(),
+            options: self.options.clone(),
             stream: false,
         };
 
         let res: reqwest::Response = self.client
-            .post(format!("{}/api/generate", &self.configuration.address))
+            .post(format!("{}/api/generate", &self.uri))
             .json(&req_body)
             .send()
             .await

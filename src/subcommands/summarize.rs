@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json;
 
 use crate::clients;
+use crate::configuration::settings::{LLMClient, Prompt, Neo4jClient};
 use crate::clients::ClientTrait;
 use crate::models::Argument;
 
@@ -13,23 +14,24 @@ use crate::models::Argument;
 struct InputContentData {
     /// The user-generated web content to extract arguments from as a raw
     /// string.
-    raw: String,
+    content: String,
 }
 
-pub async fn summarize_arguments(file_path: PathBuf, path: PathBuf) -> Result<(), ()> {
+pub async fn summarize_arguments(llm: &LLMClient, prompt: &Prompt, _neo4j: & Neo4jClient, file_path: PathBuf) -> Result<(), ()> {
     let content_inputs: Vec<InputContentData> = {
         let data = fs::read_to_string(file_path).await.unwrap();
 
+        // TODO: CHANGE THIS UNWRAP !!!
         serde_json::from_str(&data).unwrap()
     };
-    let client = clients::Client::new(&path).unwrap();
+    let client = clients::Client::new(&llm);
 
     let mut arguments: Vec<Argument> = Vec::with_capacity(content_inputs.len());
 
     // I've decided to send to send each elements as a separate requests to simplify
     // the development, and the design of the request handling.
     for input in content_inputs {
-        match client.summarize(input.raw).await {
+        match client.summarize(prompt, input.content).await {
             Ok(argument) => {
                 log::info!("sucessfully retrieved argument");
 
