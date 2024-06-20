@@ -9,40 +9,56 @@ use tokio;
 #[tokio::main]
 async fn main() {
     let cli = Cli::parse();
+    let mut settings: Settings;
 
-    setup_logger(&cli.log);
+    match Settings::new(&cli.cfg_file_path) {
+        Ok(loaded_settings) => {
+            settings = loaded_settings;
 
-    match &cli.command {
-        Some(Commands::SummarizeArguments { file, model }) => {
-            let _ = subcommands::summarize::summarize_arguments(file.to_path_buf(), model.model_file.clone().unwrap())
-                .await;
-        },
-        Some(Commands::PredictRelations { file, model: _ }) => {
-            let _ = subcommands::predict::predict_relations(file.to_path_buf())
-                .await;
-        },
-        None => (),
-    }
+            settings.merge_to_cli(&cli);
+
+            setup_logger(&settings.log);
+
+            match &cli.command {
+                Some(Commands::SummarizeArguments { file, system, prompt }) => {
+                    settings.prompts.summary = Prompt {
+                        system: system.clone().or(settings.prompts.summary.system),
+                        prompt: prompt.clone().unwrap_or(settings.prompts.summary.prompt),
+                    };
+
+                    let _ = subcommands::summarize::summarize_arguments(&settings.llm, &settings.prompts.summary, &&settings.neo4j, file.to_path_buf())
+                        .await;
+                },
+                Some(Commands::PredictRelations { file, system, prompt }) => {
+                    settings.prompts.predict = Prompt {
+                        system: system.clone().or(settings.prompts.predict.system),
+                        prompt: prompt.clone().unwrap_or(settings.prompts.predict.prompt),
+                    };
+
+                    let _ = subcommands::predict::predict_relations(file.to_path_buf())
+                        .await;
+                },
+                None => (),
+            };
+        }
+        Err(e) =>
+            println!("failed to load configuration file: {}", e),
+    };
 }
 
 // Setup the env_logger logger from a Log configuration
-fn setup_logger(cfg: &Log) {
-    match &cfg.level {
-        Some(level_str) => {
-            match level_str.parse::<log::LevelFilter>() {
-                Ok(level) => {
-                    env_logger::builder()
-                        .filter_level(level)
-                        .init();
-                },
-                _ => {
-                    setup_default_logger();
-                    
-                    log::warn!("failed to setup logger level");
-                },
-            };
+fn setup_logger(cfg: &configuration::settings::Log) {
+    match cfg.level.parse::<log::LevelFilter>() {
+        Ok(level) => {
+            env_logger::builder()
+                .filter_level(level)
+                .init();
         },
-        _ => setup_default_logger(),
+        _ => {
+            setup_default_logger();
+            
+            log::warn!("failed to setup logger level");
+        },
     };
 }
 
