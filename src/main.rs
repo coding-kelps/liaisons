@@ -4,6 +4,7 @@ mod subcommands;
 mod models;
 
 use configuration::*;
+use subcommands::{predict, summarize};
 use tokio;
 
 #[tokio::main]
@@ -26,17 +27,34 @@ async fn main() {
                         prompt: prompt.clone().unwrap_or(settings.prompts.summary.prompt),
                     };
 
-                    let _ = subcommands::summarize::summarize_arguments(&settings.llm, &settings.repository, &settings.prompts.summary, file.to_path_buf())
-                        .await;
+                    let cfg = summarize::SummarizeArgumentCfg {
+                        llm_cfg: settings.llm,
+                        repo_cfg: settings.repository,
+                        prompt: settings.prompts.summary,
+                        file_path: file.to_path_buf(),
+                    };
+
+                    if let Err(ref e) = summarize::summarize_arguments(cfg)
+                        .await {
+                            log::error!("arguments summarize failed: {}", e);
+                    }
                 },
-                Some(Commands::PredictRelations { file, system, prompt }) => {
+                Some(Commands::PredictRelations { system, prompt }) => {
                     settings.prompts.predict = Prompt {
                         system: system.clone().or(settings.prompts.predict.system),
                         prompt: prompt.clone().unwrap_or(settings.prompts.predict.prompt),
                     };
 
-                    let _ = subcommands::predict::predict_relations(file.to_path_buf())
-                        .await;
+                    let cfg = predict::PredictRelationCfg {
+                        llm_cfg: settings.llm,
+                        repo_cfg: settings.repository,
+                        prompt: settings.prompts.predict,
+                    };
+
+                    if let Err(ref e) = predict::predict_relations(cfg)
+                        .await {
+                        log::error!("arguments relation prediction failed: {}", e);
+                    }
                 },
                 None => (),
             };
