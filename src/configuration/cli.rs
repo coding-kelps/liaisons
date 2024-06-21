@@ -41,6 +41,9 @@ pub enum Commands {
     #[clap(alias("predict"))]
     #[clap(about = "")]
     PredictRelations {
+        #[arg(long, num_args = 2..)]
+        #[arg(help = "")]
+        args_id: Vec<u32>,
         #[arg(long)]
         #[arg(help = "")]
         system: Option<String>,
