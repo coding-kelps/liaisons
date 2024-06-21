@@ -40,8 +40,8 @@ impl repository::RepositoryTrait for Neo4j {
             .map_err(Error::from)?;
 
         txn.run_queries([
-            query("CREATE (p:Argument {name: $name, summary: $summary, raw: $raw})")
-                .param("name", arg.summarized_info.name)
+            query("CREATE (p:Argument {title: $title, summary: $summary, raw: $raw})")
+                .param("title", arg.summarized_info.title)
                 .param("summary", arg.summarized_info.summary)
                 .param("raw", arg.raw),
         ]).await.map_err(Error::from)?;

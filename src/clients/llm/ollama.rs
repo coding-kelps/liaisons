@@ -1,6 +1,7 @@
 use reqwest;
 use serde::{Deserialize, Serialize};
 use thiserror::Error as ThisError;
+use regex::Regex;
 
 use crate::models::SummarizedInfo;
 use crate::clients::llm;
@@ -37,6 +38,9 @@ pub enum Error {
 
     #[error("request error: {0}")]
     RequestError(#[from] reqwest::Error),
+
+    #[error("response parsing error: {0}")]
+    ResponseParsingError(String),
 }
 
 /// Describe the body for a generation http request to a Large Language
@@ -100,13 +104,34 @@ impl Client {
             options: None,
         }
     }
+
+    fn parse_response(&self, response: String) -> Result<SummarizedInfo, Error> {
+        let re = Regex::new(r"Title: (?<title>.*)\nSummary: (?<summary>.*)").unwrap();
+
+        let Some(ref caps) = re.captures(&response) else {
+            return Err(Error::ResponseParsingError(String::from("no element found in LLM response")))
+        };
+
+        let Some(title) = caps.name("title") else {
+            return Err(Error::ResponseParsingError(String::from("no \"Title\" element found in LLM response")))
+        };
+
+        let Some(summary) = caps.name("summary") else {
+            return Err(Error::ResponseParsingError(String::from("no \"Summary\" element found in LLM response")))
+        };
+
+        Ok(SummarizedInfo {
+            title: String::from(title.as_str()),
+            summary: String::from(summary.as_str())
+        })
+    }
 }
 
 impl llm::ClientTrait for Client {
     async fn summarize(&self, prompt: &settings::Prompt, raw: String) -> Result<SummarizedInfo, llm::Error> {
         let req_body = GenerateRequestBody {
             model: self.model.clone(),
-            prompt: format!("{}\n{}", prompt.prompt.clone(), raw),
+            prompt: format!("{}{}", prompt.prompt.clone(), raw),
             system: prompt.system.clone(),
             options: self.options.clone(),
             stream: false,
@@ -134,7 +159,7 @@ impl llm::ClientTrait for Client {
                 .await;
             
             match body_parsing {
-                Ok(body) => Ok(SummarizedInfo { name: String::from("salut"), summary: body.response }),
+                Ok(body) => Ok(self.parse_response(body.response)?),
                 Err(e) => Err(llm::Error::Ollama(Error::ApiError(format!("failed to parse response body: {}", e)))),
             }
         }
