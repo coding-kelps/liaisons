@@ -39,11 +39,8 @@ pub enum Commands {
     },
 
     #[clap(alias("predict"))]
-    #[clap(about = "Predicts argument relations from a given JSON source file of retrieved arguments")]
+    #[clap(about = "")]
     PredictRelations {
-        #[arg(short, long)]
-        #[arg(help = "The file path to the JSON source file of retrieved arguments")]
-        file: PathBuf,
         #[arg(long)]
         #[arg(help = "")]
         system: Option<String>,
