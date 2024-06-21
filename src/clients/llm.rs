@@ -62,11 +62,11 @@ impl Client {
 pub trait ClientTrait {
     /// Summarize the underlying argument of a user generated web-content
     /// (e.g., Twitter Post)
-    async fn summarize(&self, prompt: &settings::Prompt, content: String) -> Result<models::Argument, Error>;
+    async fn summarize(&self, prompt: &settings::Prompt, content: String) -> Result<models::SummarizedInfo, Error>;
 }
 
 impl ClientTrait for Client {
-    async fn summarize(&self, prompt: &settings::Prompt, content: String) -> Result<models::Argument, Error> {
+    async fn summarize(&self, prompt: &settings::Prompt, content: String) -> Result<models::SummarizedInfo, Error> {
         match self {
             Client::Ollama(client) => client.summarize(prompt, content).await,
         }

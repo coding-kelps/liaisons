@@ -2,7 +2,7 @@ use reqwest;
 use serde::{Deserialize, Serialize};
 use thiserror::Error as ThisError;
 
-use crate::models::Argument;
+use crate::models::SummarizedInfo;
 use crate::clients::llm;
 use crate::configuration::settings;
 
@@ -103,7 +103,7 @@ impl Client {
 }
 
 impl llm::ClientTrait for Client {
-    async fn summarize(&self, prompt: &settings::Prompt, raw: String) -> Result<Argument, llm::Error> {
+    async fn summarize(&self, prompt: &settings::Prompt, raw: String) -> Result<SummarizedInfo, llm::Error> {
         let req_body = GenerateRequestBody {
             model: self.model.clone(),
             prompt: format!("{}\n{}", prompt.prompt.clone(), raw),
@@ -134,7 +134,7 @@ impl llm::ClientTrait for Client {
                 .await;
             
             match body_parsing {
-                Ok(body) => Ok(Argument::new(body.response, raw)),
+                Ok(body) => Ok(SummarizedInfo { name: String::from("salut"), summary: body.response }),
                 Err(e) => Err(llm::Error::Ollama(Error::ApiError(format!("failed to parse response body: {}", e)))),
             }
         }
