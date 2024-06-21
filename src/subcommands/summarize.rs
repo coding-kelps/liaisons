@@ -5,6 +5,7 @@ use serde_json;
 
 use crate::clients::{llm, repository, llm::ClientTrait, repository::RepositoryTrait};
 use crate::configuration::settings::{LLMCfg, RepositoryCfg, Prompt};
+use crate::models::Argument;
 
 /// Describe the content of the raw arguments passed through the input JSON
 /// file.
@@ -32,9 +33,11 @@ pub async fn summarize_arguments(llm_cfg: &LLMCfg, repo_cfg: &RepositoryCfg, pro
     // I've decided to send to send each elements as a separate requests to simplify
     // the development, and the design of the request handling.
     for input in content_inputs {
-        match llm_client.summarize(prompt, input.content).await {
-            Ok(argument) => {
-                log::info!("sucessfully retrieved argument");
+        match llm_client.summarize(prompt, input.content.clone()).await {
+            Ok(info) => {
+                log::info!("sucessfully summarized argument");
+
+                let argument = Argument::new(info, input.content);
 
                 if let Err(ref e) = repo_client.add_argument(argument).await {
                     log::error!("failed to create argument in Neo4j database: {}", e);
