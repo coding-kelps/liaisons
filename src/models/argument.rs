@@ -11,7 +11,7 @@ pub struct Argument {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct SummarizedInfo {
-    pub name: String,
+    pub title: String,
     /// The extracted argument summarized as a string.
     pub summary: String,
 }
