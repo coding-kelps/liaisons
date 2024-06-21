@@ -39,7 +39,7 @@ async fn main() {
                             log::error!("arguments summarize failed: {}", e);
                     }
                 },
-                Some(Commands::PredictRelations { system, prompt }) => {
+                Some(Commands::PredictRelations { args_id, system, prompt }) => {
                     settings.prompts.predict = Prompt {
                         system: system.clone().or(settings.prompts.predict.system),
                         prompt: prompt.clone().unwrap_or(settings.prompts.predict.prompt),
@@ -49,6 +49,7 @@ async fn main() {
                         llm_cfg: settings.llm,
                         repo_cfg: settings.repository,
                         prompt: settings.prompts.predict,
+                        args_id: args_id.clone(),
                     };
 
                     if let Err(ref e) = predict::predict_relations(cfg)
