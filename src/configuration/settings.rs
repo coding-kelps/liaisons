@@ -6,8 +6,8 @@ use crate::configuration::Cli;
 #[derive(Debug, Deserialize, Clone)]
 pub struct Settings {
     pub log: Log,
-    pub llm: LLMClient,
-    pub neo4j: Neo4jClient,
+    pub llm: LLMCfg,
+    pub repository: RepositoryCfg,
     pub prompts: Prompts,
 }
 
@@ -17,18 +17,23 @@ pub struct Log {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub enum LLMClient {
-    Ollama(OllamaLLMClient)
+pub enum LLMCfg {
+    Ollama(OllamaCfg)
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct OllamaLLMClient {
+pub struct OllamaCfg {
     pub uri: String,
     pub model: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct Neo4jClient {
+pub enum RepositoryCfg {
+    Neo4j(Neo4jCfg),
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Neo4jCfg {
     pub uri: String,
     pub user: String,
     pub password: String,

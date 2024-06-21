@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error as ThisError;
 
 use crate::models::Argument;
-use crate::clients;
+use crate::clients::llm;
 use crate::configuration::settings;
 
 /// Describe a client to a Large Language Model running via an Ollama server.
@@ -92,7 +92,7 @@ struct GenerateSuccessResponseBody {
 }
 
 impl Client {
-    pub fn new(cfg: &settings::OllamaLLMClient) -> Self {
+    pub fn new(cfg: &settings::OllamaCfg) -> Self {
         Client {
             client: reqwest::Client::new(),
             model: cfg.model.clone(),
@@ -102,8 +102,8 @@ impl Client {
     }
 }
 
-impl clients::ClientTrait for Client {
-    async fn summarize(&self, prompt: &settings::Prompt, raw: String) -> Result<Argument, clients::Error> {
+impl llm::ClientTrait for Client {
+    async fn summarize(&self, prompt: &settings::Prompt, raw: String) -> Result<Argument, llm::Error> {
         let req_body = GenerateRequestBody {
             model: self.model.clone(),
             prompt: format!("{}\n{}", prompt.prompt.clone(), raw),
@@ -125,8 +125,8 @@ impl clients::ClientTrait for Client {
                 .await;
             
             match body_parsing {
-                Ok(body) => Err(clients::Error::Ollama(Error::ApiError(body.error))),
-                Err(e) => Err(clients::Error::Ollama(Error::ApiError(format!("failed to parse response body: {}", e)))),
+                Ok(body) => Err(llm::Error::Ollama(Error::ApiError(body.error))),
+                Err(e) => Err(llm::Error::Ollama(Error::ApiError(format!("failed to parse response body: {}", e)))),
             }
         } else {
             let body_parsing = res
@@ -134,8 +134,8 @@ impl clients::ClientTrait for Client {
                 .await;
             
             match body_parsing {
-                Ok(body) => Ok(Argument{ summary: body.response, raw: raw }),
-                Err(e) => Err(clients::Error::Ollama(Error::ApiError(format!("failed to parse response body: {}", e)))),
+                Ok(body) => Ok(Argument::new(body.response, raw)),
+                Err(e) => Err(llm::Error::Ollama(Error::ApiError(format!("failed to parse response body: {}", e)))),
             }
         }
     }

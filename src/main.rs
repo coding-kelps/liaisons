@@ -26,7 +26,7 @@ async fn main() {
                         prompt: prompt.clone().unwrap_or(settings.prompts.summary.prompt),
                     };
 
-                    let _ = subcommands::summarize::summarize_arguments(&settings.llm, &settings.prompts.summary, &&settings.neo4j, file.to_path_buf())
+                    let _ = subcommands::summarize::summarize_arguments(&settings.llm, &settings.repository, &settings.prompts.summary, file.to_path_buf())
                         .await;
                 },
                 Some(Commands::PredictRelations { file, system, prompt }) => {
