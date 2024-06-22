@@ -80,5 +80,24 @@ impl repository::RepositoryTrait for Neo4j {
 
         Err(repository::Error::Neo4j(Error::NoArgumentFound))
     }
+
+    async fn add_relation(&mut self, relation: models::Relation) -> Result<(), repository::Error> {
+        let mut txn = self.client.start_txn().await
+            .map_err(Error::from)?;
+
+        txn.run_queries([
+            query(format!("MATCH (a:Argument), (b:Argument) \
+                    WHERE ID(a) = $id_a AND ID(b) = $id_b \
+                    CREATE (a)-[:{}]->(b)", relation.relation_type.to_str()).as_str())
+                .param("id_a", relation.arg_a_id)
+                .param("id_b", relation.arg_b_id)
+                //.param("confidence", relation.confidence.to_string())
+                //.param("explanation", relation.explanation),
+        ]).await.map_err(Error::from)?;
+
+        txn.commit().await.map_err(Error::from)?;
+
+        Ok(())
+    }
 }
 
