@@ -31,6 +31,8 @@ pub trait RepositoryTrait {
     async fn add_argument(&mut self, arg: models::Argument) -> Result<(), Error>;
 
     async fn retrieve_argument(&mut self, arg_id: u32) -> Result<models::Argument, Error>;
+
+    async fn add_relation(&mut self, relation: models::Relation) -> Result<(), Error>;
 }
 
 impl RepositoryTrait for Repository {
@@ -44,6 +46,13 @@ impl RepositoryTrait for Repository {
     async fn retrieve_argument(&mut self, arg_id: u32) -> Result<models::Argument, Error> {
         match self {
             Repository::Neo4j(client) => client.retrieve_argument(arg_id)
+                .await,
+        }
+    }
+
+    async fn add_relation(&mut self, relation: models::Relation) -> Result<(), Error> {
+        match self {
+            Repository::Neo4j(client) => client.add_relation(relation)
                 .await,
         }
     }

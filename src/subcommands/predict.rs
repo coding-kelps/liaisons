@@ -1,6 +1,7 @@
 use thiserror::Error as ThisError;
+use crate::clients::llm::ClientTrait;
 use crate::configuration::settings::{LLMCfg, RepositoryCfg, Prompt};
-use crate::clients::repository;
+use crate::clients::{repository, llm};
 use crate::clients::repository::RepositoryTrait;
 use crate::models;
 
@@ -15,6 +16,9 @@ pub enum Error {
 
     #[error("repository error: {0}")]
     RepositoryError(#[from] repository::Error),
+
+    #[error("llm client error: {0}")]
+    LLMError(#[from] llm::Error),
 }
 
 pub struct PredictRelationCfg {
@@ -32,6 +36,20 @@ pub async fn predict_relations(cfg: PredictRelationCfg) -> Result<(), Error> {
 
     for arg_id in cfg.args_id {
         args.push(repo_client.retrieve_argument(arg_id).await?);
+    }
+
+    let llm_client = llm::Client::new(&cfg.llm_cfg);
+
+    for arg_a in args.iter() {
+        for arg_b in args.iter() {
+            if arg_a.id == arg_b.id {
+                continue
+            } else {
+                let relation = llm_client.predict(&cfg.prompt, arg_a, arg_b).await?;
+
+                repo_client.add_relation(relation).await?;
+            }
+        }
     }
 
     Ok(())
