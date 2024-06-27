@@ -52,16 +52,16 @@ pub async fn summarize_arguments(cfg: SummarizeArgumentCfg) -> Result<(), Error>
     for input in content_inputs {
         match llm_client.summarize(&cfg.prompt, input.content.clone()).await {
             Ok(info) => {
-                log::info!("sucessfully summarized argument");
+                tracing::info!("sucessfully summarized argument");
 
                 let argument = Argument::new(info, input.content);
 
                 if let Err(ref e) = repo_client.add_argument(argument).await {
-                    log::error!("failed to create argument in Neo4j database: {}", e);
+                    tracing::error!("failed to create argument in Neo4j database: {}", e);
                 };
             },
             Err(e) => {
-                log::error!("{}", e);
+                tracing::error!("{}", e);
             },
         };
     }
