@@ -35,15 +35,22 @@ pub fn load_configuration(cli: &Cli) -> Result<Settings, Error> {
     } else if let Ok(user) = env::var("USER") {
         let config_path = format!("/home/{}/.liaisons/config.yml", user);
 
-        s = settings::Settings::load_from_file(config_path)?;
+        if fs::metadata(config_path.clone()).is_ok() {
+            s = settings::Settings::load_from_file(config_path)?;
+        } else {
+            let config_path = String::from("/etc/liaisons/default/config.yml");
+
+            tracing::debug!("no custom configuration file found, loading default one");
+            s = settings::Settings::load_from_file(config_path)?;
+    
+            tracing::info!("saving configuration in user \"~/.liaisons\" directory");
+            save_configuration(&s)?;
+        }
     } else {
         let config_path = String::from("/etc/liaisons/default/config.yml");
 
         tracing::debug!("no custom configuration file found, loading default one");
         s = settings::Settings::load_from_file(config_path)?;
-
-        tracing::info!("saving configuration in user \".liaisons\" directory");
-        save_configuration(&s)?;
     }
 
 

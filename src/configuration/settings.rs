@@ -26,8 +26,9 @@ pub enum LogOutput {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
 pub enum LLMCfg {
-    Ollama(OllamaCfg)
+    Ollama{ ollama: OllamaCfg },
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -37,8 +38,9 @@ pub struct OllamaCfg {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
 pub enum RepositoryCfg {
-    Neo4j(Neo4jCfg),
+    Neo4j{ neo4j: Neo4jCfg },
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

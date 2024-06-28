@@ -51,8 +51,8 @@ impl Client {
     /// ```
     pub fn new(cfg: &settings::LLMCfg) -> Self {
         match cfg {
-            settings::LLMCfg::Ollama(ollama_cfg) =>
-                Client::Ollama(ollama::Client::new(ollama_cfg)),
+            settings::LLMCfg::Ollama { ollama } =>
+                Client::Ollama(ollama::Client::new(ollama)),
         }
     }
 }
