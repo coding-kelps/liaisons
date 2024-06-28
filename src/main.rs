@@ -14,9 +14,10 @@ async fn main() {
 
     match load_configuration(&cli) {
         Ok(s) => {
-            if let Err(ref e) = logger::setup(&s.log) {
-                println!("error logger setup: {:?}", e);
-            }
+            let _guard = logger::setup(&s.log)
+                .unwrap_or_else(|e| {
+                    panic!("Exiting due to an error at the logger setup {}", e);
+                });
 
             match &cli.command {
                 Some(Commands::SummarizeArguments { file, system, prompt }) => {
