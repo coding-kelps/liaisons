@@ -15,6 +15,14 @@ pub struct Settings {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Log {
     pub level: String,
+    pub output: LogOutput,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum LogOutput {
+    Stdout,
+    Stderr,
+    Default,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -70,7 +78,8 @@ impl Settings {
                 level: match &cli.log.level {
                     Some(level) => level.to_string(),
                     None => self.log.level.clone(),
-                }
+                },
+                output: self.log.output.clone(),
             },
             llm: self.llm.clone(),
             repository: self.repository.clone(),
