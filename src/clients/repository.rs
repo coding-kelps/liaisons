@@ -17,8 +17,8 @@ pub enum Error {
 impl Repository {
     pub async fn new(cfg: &settings::RepositoryCfg) -> Result<Self, Error> {
         match cfg {
-            settings::RepositoryCfg::Neo4j(neo4j_cfg) =>
-                Ok(Repository::Neo4j(neo4j::Neo4j::new(neo4j_cfg).await?)),
+            settings::RepositoryCfg::Neo4j { neo4j } =>
+                Ok(Repository::Neo4j(neo4j::Neo4j::new(neo4j).await?)),
         }
     }
 }

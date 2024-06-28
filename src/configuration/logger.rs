@@ -1,9 +1,8 @@
 use tracing::subscriber::SetGlobalDefaultError;
-use tracing_subscriber::{filter::LevelFilter, filter::LevelParseError, fmt::writer::BoxMakeWriter};
+use tracing_subscriber::{filter::LevelFilter, filter::LevelParseError};
 use std::str::FromStr;
 use crate::configuration::{settings, LogOutput};
 use thiserror::Error as ThisError;
-use chrono;
 
 #[derive(Debug, ThisError)]
 pub enum Error {
@@ -18,6 +17,7 @@ pub enum Error {
 }
 
 const LOGGING_DIR: &str = "/var/log/liaisons";
+const LOG_FILE_PREFIX: &str = "liaisons.log";
 
 // Setup the env_logger logger from a Log configuration
 pub fn setup(cfg: &settings::Log) -> Result<(), Error> {
@@ -39,23 +39,28 @@ pub fn setup(cfg: &settings::Log) -> Result<(), Error> {
         LogOutput::Stdout => {
             subscriber_builder = subscriber_builder.with_ansi(true);
 
-            BoxMakeWriter::new(std::io::stdout)
+            let (non_blocking, _guard) =
+                tracing_appender::non_blocking(std::io::stdout());
+
+            non_blocking
         },
         LogOutput::Stderr => {
             subscriber_builder = subscriber_builder.with_ansi(true);
 
-            BoxMakeWriter::new(std::io::stderr)
+            let (non_blocking, _guard) =
+                tracing_appender::non_blocking(std::io::stderr());
+
+            non_blocking
         },
         LogOutput::Default => {
             subscriber_builder = subscriber_builder.with_ansi(false);
 
-            let dt = chrono::offset::Utc::now();
+            let file_appender =
+                tracing_appender::rolling::daily(LOGGING_DIR, LOG_FILE_PREFIX);
 
-            let file = format!("{}/liaisons_log-{}.log", LOGGING_DIR, dt.format("%Y-%m-%d"));
+            let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
 
-            let output = std::fs::File::create(file)?;
-
-            BoxMakeWriter::new(std::sync::Mutex::new(output))
+            non_blocking
         },
     };
 
