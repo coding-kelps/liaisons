@@ -31,24 +31,35 @@ pub enum Commands {
         #[arg(help = "The file path to the JSON source file of social media posts")]
         file: PathBuf,
         #[arg(short, long)]
-        #[arg(help = "")]
+        #[arg(help = "override the system prompt of the language model")]
         system: Option<String>,
         #[arg(short, long)]
-        #[arg(help = "")]
+        #[arg(help = "override the system prompt of the language model")]
         prompt: Option<String>,
     },
 
     #[clap(alias("predict"))]
-    #[clap(about = "")]
+    #[clap(about = "Predict the argumentative relation between two or more arguments")]
     PredictRelations {
         #[arg(long, num_args = 2..)]
-        #[arg(help = "")]
+        #[arg(help = "the IDs of the arguments to predict relation from")]
         args_id: Vec<u32>,
         #[arg(long)]
-        #[arg(help = "")]
+        #[arg(help = "override the system prompt of the language model")]
         system: Option<String>,
         #[arg(long)]
-        #[arg(help = "")]
+        #[arg(help = "override the system prompt of the language model")]
         prompt: Option<String>,
+    },
+
+
+    #[clap(about = "Export a given range of arguments data as a json file")]
+    Export {
+        #[arg(long, num_args = 1..)]
+        #[arg(help = "The IDs of the arguments to export")]
+        args_id: Vec<u32>,
+        #[arg(short, long)]
+        #[arg(help = "The file path to the JSON source file of social media posts")]
+        file: PathBuf,
     }
 }

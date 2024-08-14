@@ -13,7 +13,10 @@ pub enum Error {
     Neo4jDeError(#[from] neo4rs::DeError),
 
     #[error("no argument found for given request")]
-    NoArgumentFound
+    NoArgumentFound,
+
+    #[error("no relation found for given request")]
+    NoRelationFound,
 }
 
 pub struct Neo4j {
@@ -98,6 +101,31 @@ impl repository::RepositoryTrait for Neo4j {
         txn.commit().await.map_err(Error::from)?;
 
         Ok(())
+    }
+
+    async fn retrieve_relation(&mut self, arg_a_id: u32, arg_b_id: u32) -> Result<models::Relation, repository::Error> {
+        let client = self.client.clone();
+        let query = query("MATCH (a:Argument)-[r]->(b:Argument) WHERE id(a) = $id_a AND id(b) = $id_b RETURN r")
+            .param("id_a", arg_a_id)
+            .param("id_b", arg_b_id);
+
+        let mut result = client.execute(query).await.unwrap();
+
+        while let Ok(Some(row)) = result.next().await {
+            let relation: neo4rs::Relation = row.get("r").map_err(Error::from)?;
+
+            return Ok(
+                models::Relation{
+                    arg_a_id: arg_a_id,
+                    arg_b_id: arg_b_id,
+                    relation_type: models::RelationType::from(&relation.typ()),
+                    confidence: 1_f32,
+                    explanation: String::from(""),
+                }
+            )
+        }
+
+        Err(repository::Error::Neo4j(Error::NoRelationFound))
     }
 }
 

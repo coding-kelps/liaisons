@@ -28,7 +28,6 @@ pub struct PredictRelationCfg {
     pub args_id: Vec<u32>,
 }
 
-/// Draft of the comming features for argument relations prediction.
 pub async fn predict_relations(cfg: PredictRelationCfg) -> Result<(), Error> {
     let mut repo_client = repository::Repository::new(&cfg.repo_cfg)
         .await?;

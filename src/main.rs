@@ -4,7 +4,7 @@ mod subcommands;
 mod models;
 
 use configuration::*;
-use subcommands::{predict, summarize};
+use subcommands::{predict, summarize, export};
 use tokio;
 use tracing;
 
@@ -50,6 +50,17 @@ async fn main() {
                     if let Err(ref e) = predict::predict_relations(cfg)
                         .await {
                         tracing::error!("arguments relation prediction failed: {}", e);
+                    }
+                },
+                Some(Commands::Export { args_id, file }) => {
+                    let cfg = export::ExportCfg {
+                        repo_cfg: s.repository,
+                        args_id: args_id.clone(),
+                        file_path: file.clone(),
+                    };
+
+                    if let Err(ref e) = export::export(cfg).await {
+                        tracing::error!("arguments export failed: {}", e);
                     }
                 },
                 None => (),
