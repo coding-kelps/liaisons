@@ -106,7 +106,7 @@ impl Client {
     }
 
     fn parse_summarize_response(&self, response: String) -> Result<SummarizedInfo, Error> {
-        let re = Regex::new(r"Title: (?<title>.*)\nSummary: (?<summary>.*)").unwrap();
+        let re = Regex::new(r"Title: (?<title>.*)\n*Summary: (?<summary>.*)").unwrap();
 
         let Some(ref caps) = re.captures(&response) else {
             return Err(Error::ResponseParsingError(String::from("no element found in LLM response")))
@@ -145,7 +145,7 @@ impl llm::ClientTrait for Client {
     async fn summarize(&self, prompt: &settings::Prompt, raw: String) -> Result<SummarizedInfo, llm::Error> {
         let req_body = GenerateRequestBody {
             model: self.model.clone(),
-            prompt: format!("{}\n\nArg:{}\n", prompt.prompt.clone(), raw),
+            prompt: format!("{}\nArg:{}\n", prompt.prompt.clone(), raw),
             system: prompt.system.clone(),
             options: self.options.clone(),
             stream: false,
@@ -182,7 +182,7 @@ impl llm::ClientTrait for Client {
     async fn predict(&self, prompt: &settings::Prompt, arg_a: &models::Argument, arg_b: &models::Argument) -> Result<models::Relation, llm::Error> {
         let req_body = GenerateRequestBody {
             model: self.model.clone(),
-            prompt: format!("{}\n\nArg1:{}\nArg2:{}\n", prompt.prompt.clone(), arg_a.raw, arg_b.raw),
+            prompt: format!("{}\nArg1: {}\nArg2: {}Relation: ", prompt.prompt.clone(), arg_a.raw, arg_b.raw),
             system: prompt.system.clone(),
             options: self.options.clone(),
             stream: false,

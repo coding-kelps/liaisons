@@ -28,7 +28,11 @@ pub enum Error {
 pub fn load_configuration(cli: &Cli) -> Result<Settings, Error> {
     let s: Settings;
 
-    if let Ok(path) = env::var("LIAISONS_CONFIG") {
+    if let Some(path) = &cli.cfg_file_path {
+        let config_path = path.clone();
+
+        s = settings::Settings::load_from_file(config_path)?;
+    } else if let Ok(path) = env::var("LIAISONS_CONFIG") {
         let config_path = path;
 
         s = settings::Settings::load_from_file(config_path)?;
