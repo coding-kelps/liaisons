@@ -127,17 +127,7 @@ impl Client {
     }
 
     fn parse_predict_response(&self, response: String) -> Result<models::RelationType, Error> {
-        let re = Regex::new(r"Relation: (?<relation>.*)").unwrap();
-
-        let Some(ref caps) = re.captures(&response) else {
-            return Err(Error::ResponseParsingError(String::from("no element found in LLM response")))
-        };
-
-        let Some(relation_type) = caps.name("relation") else {
-            return Err(Error::ResponseParsingError(String::from("no \"Relation\" element found in LLM response")))
-        };
-
-        Ok(models::RelationType::from(relation_type.as_str()))
+        Ok(models::RelationType::from(response.as_str()))
     }
 }
 
@@ -182,7 +172,7 @@ impl llm::ClientTrait for Client {
     async fn predict(&self, prompt: &settings::Prompt, arg_a: &models::Argument, arg_b: &models::Argument) -> Result<models::Relation, llm::Error> {
         let req_body = GenerateRequestBody {
             model: self.model.clone(),
-            prompt: format!("{}\nArg1: {}\nArg2: {}Relation: ", prompt.prompt.clone(), arg_a.raw, arg_b.raw),
+            prompt: format!("{}\nArg1: {}\nArg2: {}\nRelation: ", prompt.prompt.clone(), arg_a.raw, arg_b.raw),
             system: prompt.system.clone(),
             options: self.options.clone(),
             stream: false,
