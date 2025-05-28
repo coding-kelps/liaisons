@@ -1,7 +1,18 @@
 [package]
 name = "liaisons"
 version = "0.0.1"
+authors = ["Coding Kelps"]
+autotests = false
+categories = ["command-line-utilities", "science", "visualization", "simulation"]
+description = "🌐 Enable graph visualization of argumentative discourses on social media."
 edition = "2021"
+exclude = []
+homepage = "https://github.com/coding-kelps/liaisons"
+keywords = ["argument-mining", "social-media"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/coding-kelps/liaisons"
+rust-version = "1.83"
 
 [dependencies]
 clap = { version = "4.5.4", features = ["derive"] }
