@@ -35,6 +35,7 @@ All notable changes to this project will be documented in this file.
 
 ### 📚 Documentation
 
+- *(cargo)* Add project crate metadata to enable publication to crates.io - ([98fbe2e](https://github.com/coding-kelps/liaisons/commit/98fbe2eb1a19a07775124346b9c9236660eca6e2))
 - Polish README spacing - ([bbeb591](https://github.com/coding-kelps/liaisons/commit/bbeb59189c97cc059b53151efa2a29f34c887466))
 - Update changelog - ([cf1e6eb](https://github.com/coding-kelps/liaisons/commit/cf1e6eba0635bab5bdf9fb57ad2905da23b0264e))
 
